@@ -178,7 +178,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   //
   // HANDLE RESULT SETS
-  //
+  //处理结果集，是分段获取的。并且处理结果的映射器可能有多个。
   @Override
   public List<Object> handleResultSets(Statement stmt) throws SQLException {
     ErrorContext.instance().activity("handling results").object(mappedStatement.getId());
@@ -188,12 +188,12 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     int resultSetCount = 0;
     ResultSetWrapper rsw = getFirstResultSet(stmt);
 
-    List<ResultMap> resultMaps = mappedStatement.getResultMaps();
+    List<ResultMap> resultMaps = mappedStatement.getResultMaps();//获取到结果集映射到java对象的resultmap
     int resultMapCount = resultMaps.size();
     validateResultMapsCount(rsw, resultMapCount);
     while (rsw != null && resultMapCount > resultSetCount) {
       ResultMap resultMap = resultMaps.get(resultSetCount);
-      handleResultSet(rsw, resultMap, multipleResults, null);
+      handleResultSet(rsw, resultMap, multipleResults, null);//处理resultset的一次加载的数据，他是有featch参数控制的。
       rsw = getNextResultSet(stmt);
       cleanUpAfterHandlingResultSet();
       resultSetCount++;
@@ -235,6 +235,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     return new DefaultCursor<E>(this, resultMap, rsw, rowBounds);
   }
 
+  //将resultset封装成ResultSetWrapper包装类
   private ResultSetWrapper getFirstResultSet(Statement stmt) throws SQLException {
     ResultSet rs = stmt.getResultSet();
     while (rs == null) {
@@ -292,7 +293,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
           + "'.  It's likely that neither a Result Type nor a Result Map was specified.");
     }
   }
-
+  //处理一行数据，通过resultMap的映射关系，存储到multipleResults
   private void handleResultSet(ResultSetWrapper rsw, ResultMap resultMap, List<Object> multipleResults, ResultMapping parentMapping) throws SQLException {
     try {
       if (parentMapping != null) {
@@ -300,7 +301,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
       } else {
         if (resultHandler == null) {
           DefaultResultHandler defaultResultHandler = new DefaultResultHandler(objectFactory);
-          handleRowValues(rsw, resultMap, defaultResultHandler, rowBounds, null);
+          handleRowValues(rsw, resultMap, defaultResultHandler, rowBounds, null);//处理每行的数据
           multipleResults.add(defaultResultHandler.getResultList());
         } else {
           handleRowValues(rsw, resultMap, resultHandler, rowBounds, null);
@@ -345,7 +346,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
           + "or ensure your statement returns ordered data and set resultOrdered=true on it.");
     }
   }
-
+  //处理每一行的数据
   private void handleRowValuesForSimpleResultMap(ResultSetWrapper rsw, ResultMap resultMap, ResultHandler<?> resultHandler, RowBounds rowBounds, ResultMapping parentMapping)
       throws SQLException {
     DefaultResultContext<Object> resultContext = new DefaultResultContext<Object>();

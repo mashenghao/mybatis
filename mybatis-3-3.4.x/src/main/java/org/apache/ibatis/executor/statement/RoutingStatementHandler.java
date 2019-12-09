@@ -53,13 +53,13 @@ public class RoutingStatementHandler implements StatementHandler {
     }
 
   }
-
+  //预编译sql语句使用
   @Override
   public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {
     return delegate.prepare(connection, transactionTimeout);
   }
 
-  @Override
+  @Override//给参数赋值
   public void parameterize(Statement statement) throws SQLException {
     delegate.parameterize(statement);
   }

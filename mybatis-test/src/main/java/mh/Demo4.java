@@ -24,11 +24,11 @@ public class Demo4 {
         InputStream inputStream = Resources.getResourceAsStream(resource);
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
         try (SqlSession session = sqlSessionFactory.openSession()) {
-             User user = new User();
-             user.setAddress("hanan");
-             user.setBirthday(new Date());
-             user.setSex("m");
-             user.setUsername("zzz");
+            User user = new User();
+            user.setAddress("hanan");
+            user.setBirthday(new Date());
+            user.setSex("m");
+            user.setUsername("zzz2");
             int i = session.insert("mh.mapper.UserMapper.insert", user);
             System.out.println(user);
             session.commit();

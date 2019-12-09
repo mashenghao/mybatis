@@ -551,6 +551,13 @@ public class Configuration {
     return MetaObject.forObject(object, objectFactory, objectWrapperFactory, reflectorFactory);
   }
 
+  /**
+   * 创建参数处理器
+   * @param mappedStatement
+   * @param parameterObject
+   * @param boundSql
+   * @return
+   */
   public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
     ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(mappedStatement, parameterObject, boundSql);
     parameterHandler = (ParameterHandler) interceptorChain.pluginAll(parameterHandler);
@@ -564,6 +571,8 @@ public class Configuration {
     return resultSetHandler;
   }
 
+  //创建本次操作statement的处理器，使用RoutingStatementHandler，用包装模式，起作用的是PreparedStatementHandler
+  //因为是操作sql语句的，所以需要参数处理器和结果集处理器，都在PreparedStatementHandler创建时创建了。
   public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
     StatementHandler statementHandler = new RoutingStatementHandler(executor, mappedStatement, parameterObject, rowBounds, resultHandler, boundSql);
     statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
@@ -574,6 +583,13 @@ public class Configuration {
     return newExecutor(transaction, defaultExecutorType);
   }
 
+    /**
+     * 获取一个当前会话的执行器，参数由两个
+     *
+     * @param transaction   当前连接的事务管理器。
+     * @param executorType ExecutorType执行器枚举类型
+     * @return
+     */
   public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
     executorType = executorType == null ? defaultExecutorType : executorType;
     executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
@@ -585,7 +601,7 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
-    if (cacheEnabled) {
+    if (cacheEnabled) {//默认是开启的mapper全局缓存的。
       executor = new CachingExecutor(executor);
     }
     executor = (Executor) interceptorChain.pluginAll(executor);
@@ -775,6 +791,7 @@ public class Configuration {
   }
 
   /*
+   *操作好像是将尚未完全处理完成的那些ResultMap或者其他的全部进行一次构建。
    * Parses all the unprocessed statement nodes in the cache. It is recommended
    * to call this method once all the mappers are added as it provides fail-fast
    * statement validation.

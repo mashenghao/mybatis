@@ -51,10 +51,14 @@ public class Demo1 {
          *
          */
         DefaultSqlSessionFactory sqlSessionFactory = (DefaultSqlSessionFactory) new SqlSessionFactoryBuilder().build(inputStream);
-
+        //sqlSessionFactory创建一个DefaultSqlSession对象
         try (DefaultSqlSession session = (DefaultSqlSession) sqlSessionFactory.openSession()) {
             Connection connection = session.getConnection();
             System.out.println(connection);
+            /**
+             * 操作逻辑：
+             *
+             */
             User user = (User) session.selectOne("mh.mapper.UserMapper.selectUser", 1);
             System.out.println(user);
             session.commit();

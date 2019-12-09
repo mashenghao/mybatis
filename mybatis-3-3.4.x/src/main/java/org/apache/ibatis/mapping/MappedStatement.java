@@ -33,26 +33,26 @@ import org.apache.ibatis.session.Configuration;
  */
 public final class MappedStatement {
 
-  private String resource;
+  private String resource;  //
   private Configuration configuration;
-  private String id;
-  private Integer fetchSize;
+  private String id; //xml中id名
+  private Integer fetchSize; //一次获取的次数
   private Integer timeout;
-  private StatementType statementType;
+  private StatementType statementType; //默认是预编译的statement
   private ResultSetType resultSetType;
-  private SqlSource sqlSource;
-  private Cache cache;
-  private ParameterMap parameterMap;
-  private List<ResultMap> resultMaps;
+  private SqlSource sqlSource; //sql语句
+  private Cache cache; //使用的缓存实例
+  private ParameterMap parameterMap; //参数map
+  private List<ResultMap> resultMaps; //对应的结果集映射
   private boolean flushCacheRequired;
   private boolean useCache;
   private boolean resultOrdered;
   private SqlCommandType sqlCommandType;
   private KeyGenerator keyGenerator;
-  private String[] keyProperties;
-  private String[] keyColumns;
+  private String[] keyProperties;//java参数列
+  private String[] keyColumns;//数据库列
   private boolean hasNestedResultMaps;
-  private String databaseId;
+  private String databaseId;//数据库标识
   private Log statementLog;
   private LanguageDriver lang;
   private String[] resultSets;
@@ -289,6 +289,7 @@ public final class MappedStatement {
   }
   
   public BoundSql getBoundSql(Object parameterObject) {
+    //创建了一个BoundSql对象，里面有sql语句，参数的对应关系和参数值
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings == null || parameterMappings.isEmpty()) {

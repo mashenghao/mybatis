@@ -51,17 +51,18 @@ public abstract class BaseExecutor implements Executor {
 
   private static final Log log = LogFactory.getLog(BaseExecutor.class);
 
-  protected Transaction transaction;
-  protected Executor wrapper;
+  protected Transaction transaction;//事务管理器
+  protected Executor wrapper; //执行器
 
   protected ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
-  protected PerpetualCache localCache;
+  protected PerpetualCache localCache;//缓存
   protected PerpetualCache localOutputParameterCache;
-  protected Configuration configuration;
+  protected Configuration configuration;//配置
 
   protected int queryStack;
-  private boolean closed;
+  private boolean closed; //false
 
+  //构造方法，传入configuration和transaction
   protected BaseExecutor(Configuration configuration, Transaction transaction) {
     this.transaction = transaction;
     this.deferredLoads = new ConcurrentLinkedQueue<DeferredLoad>();
@@ -129,13 +130,28 @@ public abstract class BaseExecutor implements Executor {
     return doFlushStatements(isRollBack);
   }
 
+  //查询数据
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+    //mapper.xml解析的sql语句，包括参数名#{}中的参数
     BoundSql boundSql = ms.getBoundSql(parameter);
+    //根据sql语句，参数等生成一个唯一的key，去当做缓存头
     CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
     return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
  }
 
+  /**
+   * 查询数据
+   * @param ms  MappedStatement
+   * @param parameter 参数值
+   * @param rowBounds
+   * @param resultHandler 默认是null，接口扩展使用的。
+   * @param key  缓存可以
+   * @param boundSql  sql语句封装
+   * @param <E>
+   * @return
+   * @throws SQLException
+   */
   @SuppressWarnings("unchecked")
   @Override
   public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
@@ -149,10 +165,11 @@ public abstract class BaseExecutor implements Executor {
     List<E> list;
     try {
       queryStack++;
-      list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;
+      list = resultHandler == null ? (List<E>) localCache.getObject(key) : null;//第一次查询是null
       if (list != null) {
         handleLocallyCachedOutputParameters(ms, key, parameter, boundSql);
       } else {
+        //从数据库中进行查询，返回数据
         list = queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql);
       }
     } finally {
@@ -317,12 +334,27 @@ public abstract class BaseExecutor implements Executor {
     }
   }
 
+  /**
+   * 从数据库中查询数据
+   *
+   * @param ms
+   * @param parameter
+   * @param rowBounds
+   * @param resultHandler
+   * @param key
+   * @param boundSql
+   * @param <E>
+   * @return
+   * @throws SQLException
+   */
   private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
     List<E> list;
-    localCache.putObject(key, EXECUTION_PLACEHOLDER);
+    localCache.putObject(key, EXECUTION_PLACEHOLDER);//标记查询过
     try {
+      //子类重写
       list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
     } finally {
+      //更新缓存
       localCache.removeObject(key);
     }
     localCache.putObject(key, list);

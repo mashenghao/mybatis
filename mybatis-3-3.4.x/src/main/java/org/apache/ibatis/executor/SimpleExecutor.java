@@ -53,13 +53,29 @@ public class SimpleExecutor extends BaseExecutor {
     }
   }
 
+  /**
+   * 从数据库中，查询数据
+   * @param ms
+   * @param parameter
+   * @param rowBounds
+   * @param resultHandler
+   * @param boundSql
+   * @param <E>
+   * @return
+   * @throws SQLException
+   */
   @Override
   public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();
+      //这里创建完成了当前statement处理器，同时里面页创建了参数处理器和结果处理器。
+        //this.parameterHandler = configuration.newParameterHandler(mappedStatement, parameterObject, boundSql);
+        //this.resultSetHandler = configuration.newResultSetHandler(executor, mappedStatement, rowBounds, parameterHandler, resultHandler, boundSql);
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+      //完成了预编译和参数的填充了
       stmt = prepareStatement(handler, ms.getStatementLog());
+      //这个handler是PrepareStatementHandler类
       return handler.<E>query(stmt, resultHandler);
     } finally {
       closeStatement(stmt);
@@ -79,10 +95,13 @@ public class SimpleExecutor extends BaseExecutor {
     return Collections.emptyList();
   }
 
+  //预编译sql并且填充数据
   private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
     Statement stmt;
     Connection connection = getConnection(statementLog);
+    //预编译sql语句
     stmt = handler.prepare(connection, transaction.getTimeout());
+    //填充数据
     handler.parameterize(stmt);
     return stmt;
   }

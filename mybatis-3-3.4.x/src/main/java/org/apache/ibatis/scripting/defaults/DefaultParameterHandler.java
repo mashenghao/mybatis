@@ -33,6 +33,7 @@ import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
 /**
+ * 默认的参数处理器类
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -58,16 +59,17 @@ public class DefaultParameterHandler implements ParameterHandler {
     return parameterObject;
   }
 
+  //在这里面去赋值，真真的逻辑
   @Override
   public void setParameters(PreparedStatement ps) {
     ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
     List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
     if (parameterMappings != null) {
-      for (int i = 0; i < parameterMappings.size(); i++) {
+      for (int i = 0; i < parameterMappings.size(); i++) {//遍历所有的参数映射，然后赋值
         ParameterMapping parameterMapping = parameterMappings.get(i);
         if (parameterMapping.getMode() != ParameterMode.OUT) {
           Object value;
-          String propertyName = parameterMapping.getProperty();
+          String propertyName = parameterMapping.getProperty();//propertyName是sql语句中#{}包裹的值
           if (boundSql.hasAdditionalParameter(propertyName)) { // issue #448 ask first for additional params
             value = boundSql.getAdditionalParameter(propertyName);
           } else if (parameterObject == null) {

@@ -23,6 +23,7 @@ public class Demo3 {
             PreparedStatement ps = connection.prepareStatement("select * from USER where id = ?");
             ps.setInt(1, 1);
             ResultSet rs = ps.executeQuery();
+            System.out.println(rs.getClass());
             while (rs.next()) {
                 String username = rs.getString("username");
                 System.out.println(username);

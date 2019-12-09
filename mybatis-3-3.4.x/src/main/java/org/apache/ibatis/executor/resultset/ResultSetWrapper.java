@@ -36,15 +36,17 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.apache.ibatis.type.UnknownTypeHandler;
 
 /**
+ * ResultSet的包装类，存储了数据集每列的类型和名字以及对应的java类型
+ *
  * @author Iwao AVE!
  */
 public class ResultSetWrapper {
 
   private final ResultSet resultSet;
   private final TypeHandlerRegistry typeHandlerRegistry;
-  private final List<String> columnNames = new ArrayList<String>();
-  private final List<String> classNames = new ArrayList<String>();
-  private final List<JdbcType> jdbcTypes = new ArrayList<JdbcType>();
+  private final List<String> columnNames = new ArrayList<String>();//存储了数据库中每列的列名
+  private final List<String> classNames = new ArrayList<String>();//存储了列名类型对应的java类型
+  private final List<JdbcType> jdbcTypes = new ArrayList<JdbcType>();//存储了每列的数据库类型
   private final Map<String, Map<Class<?>, TypeHandler<?>>> typeHandlerMap = new HashMap<String, Map<Class<?>, TypeHandler<?>>>();
   private final Map<String, List<String>> mappedColumnNamesMap = new HashMap<String, List<String>>();
   private final Map<String, List<String>> unMappedColumnNamesMap = new HashMap<String, List<String>>();
@@ -53,6 +55,7 @@ public class ResultSetWrapper {
     super();
     this.typeHandlerRegistry = configuration.getTypeHandlerRegistry();
     this.resultSet = rs;
+    //获取结果集的元数据，获取每列的数据
     final ResultSetMetaData metaData = rs.getMetaData();
     final int columnCount = metaData.getColumnCount();
     for (int i = 1; i <= columnCount; i++) {

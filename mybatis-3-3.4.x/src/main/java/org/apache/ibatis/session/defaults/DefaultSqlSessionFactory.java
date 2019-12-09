@@ -29,6 +29,7 @@ import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.ibatis.transaction.Transaction;
 import org.apache.ibatis.transaction.TransactionFactory;
+import org.apache.ibatis.transaction.jdbc.JdbcTransactionFactory;
 import org.apache.ibatis.transaction.managed.ManagedTransactionFactory;
 
 /**
@@ -45,6 +46,10 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     this.configuration = configuration;
   }
 
+  /**
+   * 获取一次session
+   * @return
+   */
   @Override
   public SqlSession openSession() {
     return openSessionFromDataSource(configuration.getDefaultExecutorType(), null, false);
@@ -90,16 +95,32 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     return configuration;
   }
 
+  /**
+   * 获取session，从数据源中获取connection；
+   *
+   * @param execType  执行器的类型，默认是简单SIMPLE
+   * @param level  隔离级别，是使用connection的隔离级别
+   * @param autoCommit 是否自动提交
+   * @return
+   */
   private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
     Transaction tx = null;
+    //获取session步骤；
     try {
-      //获取到环境，包括dataSource数据源，解析<dataSource>获取到的。
+      //1.获取到环境，包括dataSource数据源，解析<dataSource>获取到的。
       final Environment environment = configuration.getEnvironment();
+      //2.获取transactionFactory事务管理器工厂，就是从environment取，在加载配置文件的时候获取的。
+      //具体的去查看，XMLConfigBuilder.parseConfiguration()方法中对environments标签的解析：
+      //TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
+      //transactionManager指定了事务管理器的别名，对应的类是JdbcTransactionFactory工厂类。
       final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
-      //获取事务管理器
-      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+
+      //3.获取事务管理器,传入数据源和会话参数，在这里面获取connection，并存入到了tx中。
+      tx = ((JdbcTransactionFactory)transactionFactory).newTransaction(environment.getDataSource(), level, autoCommit);
+
       Connection connection = tx.getConnection();
-      // 获取 Executor执行语句
+      // 4.获取 Executor执行器，用来执行这次会话，根据execType获取执行器。
+      //执行器有三个子类，我们使用的是SimpleExecutor，由于缓存，最终使用CachingExecutor
       final Executor executor = configuration.newExecutor(tx, execType);
       System.out.println(executor);
       return new DefaultSqlSession(configuration, executor, autoCommit);
@@ -111,6 +132,12 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     }
   }
 
+  /**
+   * 自带的connection，去获取session
+   * @param execType
+   * @param connection
+   * @return
+   */
   private SqlSession openSessionFromConnection(ExecutorType execType, Connection connection) {
     try {
       boolean autoCommit;
@@ -133,6 +160,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
     }
   }
 
+  //获取事务管理器工厂，就是从environment去取，取不出来创建一个默认的事务管理器工厂。
   private TransactionFactory getTransactionFactoryFromEnvironment(Environment environment) {
     if (environment == null || environment.getTransactionFactory() == null) {
       return new ManagedTransactionFactory();

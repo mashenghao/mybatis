@@ -40,6 +40,7 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     super(executor, mappedStatement, parameter, rowBounds, resultHandler, boundSql);
   }
 
+
   @Override
   public int update(Statement statement) throws SQLException {
     PreparedStatement ps = (PreparedStatement) statement;
@@ -57,10 +58,12 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     ps.addBatch();
   }
 
+  //进行查询操作
   @Override
   public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
     PreparedStatement ps = (PreparedStatement) statement;
     ps.execute();
+    //查询完成后处理结果集，resultSetHandler是父类中创建的类，去查看处理方法
     return resultSetHandler.<E> handleResultSets(ps);
   }
 
@@ -71,6 +74,7 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     return resultSetHandler.<E> handleCursorResultSets(ps);
   }
 
+  //处理生成那种statement
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
@@ -84,12 +88,14 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     } else if (mappedStatement.getResultSetType() != null) {
       return connection.prepareStatement(sql, mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
     } else {
+      //预编译的地方
       return connection.prepareStatement(sql);
     }
   }
 
-  @Override
+  @Override//填充参数
   public void parameterize(Statement statement) throws SQLException {
+    //调用参数填充处理器的方法。DefaultParameterHandler
     parameterHandler.setParameters((PreparedStatement) statement);
   }
 
