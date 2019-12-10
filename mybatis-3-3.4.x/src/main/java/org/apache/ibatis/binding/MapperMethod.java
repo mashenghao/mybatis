@@ -28,6 +28,7 @@ import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.defaults.DefaultSqlSession;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -46,7 +47,9 @@ public class MapperMethod {
   private final MethodSignature method;
 
   public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
+    //根据接口名字和方法名获取MappedStatement,封装成SqlCommand
     this.command = new SqlCommand(config, mapperInterface, method);
+    //封装了mapper对应的方法，包括签名，返回值等。
     this.method = new MethodSignature(config, mapperInterface, method);
   }
 
@@ -79,8 +82,10 @@ public class MapperMethod {
         } else if (method.returnsCursor()) {
           result = executeForCursor(sqlSession, args);
         } else {
+          //封装参数
           Object param = method.convertArgsToSqlCommandParam(args);
-          result = sqlSession.selectOne(command.getName(), param);
+          //执行当前语句
+          result = ((DefaultSqlSession)sqlSession).selectOne(command.getName(), param);
         }
         break;
       case FLUSH:
@@ -208,6 +213,7 @@ public class MapperMethod {
 
   }
 
+  //关于sql语句的封装
   public static class SqlCommand {
 
     private final String name;
@@ -264,6 +270,7 @@ public class MapperMethod {
     }
   }
 
+  //方法签名的封装
   public static class MethodSignature {
 
     private final boolean returnsMany;

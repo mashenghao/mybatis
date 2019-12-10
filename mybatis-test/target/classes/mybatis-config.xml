@@ -4,11 +4,22 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
 
+    <!--关闭缓存-->
+    <settings>
+        <setting name="cacheEnabled" value="false"/>
+    </settings>
+
     <!--类型处理器-->
     <typeHandlers>
-        <typeHandler handler="mh.typeHandler.ExampleTypeHandler" jdbcType="VARCHAR"  />
+        <typeHandler handler="mh.typeHandler.ExampleTypeHandler" jdbcType="VARCHAR"/>
     </typeHandlers>
 
+    <!--插件处理机制，最后了解-->
+    <!--
+    <plugins>
+        <plugin interceptor="mh.interceptor.MyInterceptor"></plugin>
+    </plugins>
+     -->
 
     <environments default="development">
         <environment id="development">
@@ -24,7 +35,7 @@
 
 
     <mappers>
-        <mapper resource="mapper/UserMapper.xml"  />
+        <mapper resource="mapper/UserMapper.xml"/>
     </mappers>
 
 </configuration>

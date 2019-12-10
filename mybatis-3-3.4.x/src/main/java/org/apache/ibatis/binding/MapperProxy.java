@@ -28,6 +28,8 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 import org.apache.ibatis.session.SqlSession;
 
 /**
+ *
+ * InvocationHandler类，用来代理实现方法的。
  * @author Clinton Begin
  * @author Eduardo Macarron
  */
@@ -48,7 +50,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       if (Object.class.equals(method.getDeclaringClass())) {
-        return method.invoke(this, args);
+        return method.invoke(this, args);//这是自己创建的一个类，对于Object中的方法直接用这个类实现了。
       } else if (isDefaultMethod(method)) {
         return invokeDefaultMethod(proxy, method, args);
       }
@@ -68,6 +70,7 @@ public class MapperProxy<T> implements InvocationHandler, Serializable {
     return mapperMethod;
   }
 
+  //代理方法
   @UsesJava7
   private Object invokeDefaultMethod(Object proxy, Method method, Object[] args)
       throws Throwable {
