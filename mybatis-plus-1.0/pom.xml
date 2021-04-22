@@ -32,7 +32,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<mybatis.version>3.3.0</mybatis.version>
+		<mybatis.version>3.5.6</mybatis.version>
 		<slf4j-api.version>1.7.13</slf4j-api.version>
 		<spring.version>4.2.3.RELEASE</spring.version>
 		<mybatis-spring.version>1.2.3</mybatis-spring.version>
